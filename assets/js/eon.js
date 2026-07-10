@@ -9,17 +9,103 @@
 'use strict';
 
 window.initEonPage = function initEonPage() {
-  const p = document.querySelector('#content');
+  const root = document.querySelector('#content');
+  root.innerHTML = '<div id="eonTop"></div><div id="eonBody"></div>';
+  const p = document.querySelector('#eonBody');
   const CS = [['CSE311', 'A'], ['CSE311', 'B'], ['CSE220', 'A'], ['CSE220', 'B'], ['ENG103', 'A']];
   let scope = 0;   // index into CS
 
+  /* ── deck top: quick-jump strip + LIVE working area + Ask EON ── */
+  function renderTop() {
+    const jumps = [['#eonLive', 'Live working'], ['#eonAsk', 'Ask EON'], ['#l1', 'Gaps'], ['#l2', 'Why'], ['#l3', 'Forecast'], ['#l4', 'Actions'], ['#l5', 'Loop'], ['integrity.html', 'Integrity']];
+    document.querySelector('#eonTop').innerHTML = `
+      <div class="eon-strip">${jumps.map(([h, l]) => `<a class="pill" href="${h}">${l}</a>`).join('')}</div>
+
+      <div class="card mb panel" id="eonLive"><div class="card-head"><span class="sec-title">EON — live working area</span><span class="ai-label">${icon('activity', 'sm')} reasoning trace</span><span class="spacer"></span><span class="chip green" id="eonState"><span style="width:6px;height:6px;border-radius:99px;background:currentColor;display:inline-block"></span> reading</span></div>
+        <div class="grid g21">
+          <div id="eonTrace" style="font: 500 12.5px var(--font-mono);line-height:2;max-height:198px;overflow-y:auto;background:color-mix(in oklab,var(--muted) 26%,transparent);border:1px solid color-mix(in oklab,var(--border) 60%,transparent);border-radius:12px;padding:10px 14px"></div>
+          <div><div class="sec-title" style="margin-bottom:8px">Live alerts</div><div id="eonAlerts"><p class="hint">Waking the brain…</p></div></div>
+        </div>
+      </div>
+
+      <div class="card mb" id="eonAsk"><div class="card-head"><span class="sec-title">Ask EON</span><span class="spacer"></span><span class="hint">answers inline, grounded in this cohort's live numbers</span></div>
+        <div style="display:flex;gap:8px"><input id="eonAskIn" type="text" placeholder="e.g. who is at risk? · what should I re-teach? · CO attainment?" style="flex:1;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 13px;outline:0">
+          <button class="btn grad" id="eonAskGo">${icon('send', 'sm')} Ask</button></div>
+        <div class="pills" style="margin-top:10px">${['Who is at risk?', 'What should I re-teach?', 'CO attainment', 'Upcoming exams', 'Integrity flags', 'How am I doing?'].map(q => `<button class="pill" data-q="${q}">${q}</button>`).join('')}</div>
+        <div id="eonAskOut" style="margin-top:12px"></div>
+      </div>`;
+
+    /* ask wiring — inline answers, never a popup */
+    const out = document.querySelector('#eonAskOut');
+    const ask = (q) => {
+      if (!q) return;
+      let a = null;
+      try { a = window.TeacherQA && TeacherQA.answer(q); } catch (e) { /* fall through */ }
+      if (!a) a = 'I have limited data on that one — I\'m still learning this cohort. Try me on risk, re-teach targets, attainment, deadlines or a student\'s name.';
+      out.insertAdjacentHTML('afterbegin', `<div class="panel" style="border:1px solid color-mix(in oklab,var(--border) 60%,transparent);background:color-mix(in oklab,var(--muted) 20%,transparent);border-radius:12px;padding:11px 13px;margin-bottom:8px">
+        <div style="font-size:11px;color:var(--muted-foreground);margin-bottom:4px">You asked: ${esc(q)}</div><div style="font-size:13.5px;line-height:1.6">${a}</div></div>`);
+    };
+    document.querySelector('#eonAskGo').onclick = () => { const i = document.querySelector('#eonAskIn'); ask(i.value.trim()); i.value = ''; };
+    document.querySelector('#eonAskIn').addEventListener('keydown', e => { if (e.key === 'Enter') { ask(e.target.value.trim()); e.target.value = ''; } });
+    document.querySelectorAll('#eonAsk [data-q]').forEach(b => b.onclick = () => ask(b.dataset.q));
+
+    /* live reasoning trace — real numbers, cycling like a meditation pass */
+    const traceBox = document.querySelector('#eonTrace');
+    const stateChip = document.querySelector('#eonState');
+    const flagged = A.flagged();
+    const fc = A.forecast('CSE311', 'A');
+    const wk = A.topics('CSE311', 'A')[0];
+    const nxt = T.upcoming.map(u => ({ ...u, d: daysUntil(u.date) })).sort((a, b) => a.d - b.d)[0];
+    const steps = [
+      ['read', `reading store — ${T.students.length} students · ${T.assessments.length} assessments · ${T.teacherOpps.length} opportunities`],
+      ['schema', `discovery — 6 entities inferred, no config needed (courses · students · assessments · advising · opportunities · classes)`],
+      ['deadline', `deadline scan — next: “${nxt ? nxt.title : '—'}” in ${nxt ? nxt.d : '—'}d (${nxt ? nxt.course + ' Sec ' + nxt.section : ''})`],
+      ['risk', `risk model — ${flagged.length} students flagged · top: ${flagged[0] ? flagged[0].s.name + ' (' + flagged[0].r.score + ')' : '—'}`],
+      ['topics', `topic diagnostics — weakest: “${wk ? wk.topic : '—'}” at ${wk ? pct(wk.rate) : '—'}% in CSE311 Sec A`],
+      ['mc', `monte-carlo ×500 — CSE311 Sec A heading to ${fc.passRate}% pass · ${fc.avg}% average`],
+      ['integrity', `integrity sweep — ${(T.integrity && T.integrity.scripts || []).length} scripts analysed · 2 high-priority cases awaiting review`],
+      ['idle', `cycle complete — watching for changes`],
+    ];
+    let si = 0, cycle = 1;
+    const stamp = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    function tick() {
+      if (!document.body.contains(traceBox)) return;           // page swapped
+      const [k, msg] = steps[si];
+      traceBox.insertAdjacentHTML('beforeend', `<div><span style="color:var(--text-faint)">${stamp()}</span> <span style="color:var(--primary-700)">[${k}]</span> ${esc(msg)}</div>`);
+      traceBox.scrollTop = traceBox.scrollHeight;
+      stateChip.className = 'chip ' + (k === 'idle' ? 'slate' : 'green');
+      stateChip.innerHTML = `<span style="width:6px;height:6px;border-radius:99px;background:currentColor;display:inline-block"></span> ${k === 'idle' ? 'idle · cycle ' + cycle : 'working'}`;
+      si++;
+      if (si >= steps.length) { si = 0; cycle++; setTimeout(tick, 14000); return; }
+      setTimeout(tick, 900 + Math.random() * 700);
+    }
+    tick();
+
+    /* live alerts — real EonBrain when the companion has booted, seed fallback meanwhile */
+    function renderAlerts() {
+      const box = document.querySelector('#eonAlerts');
+      if (!box) return;
+      let items = [];
+      try { if (window.EonBrain && EonBrain.getAlerts) items = (EonBrain.getAlerts() || []).slice(0, 5).map(a => ({ t: a.title || a.label || a.message, d: a.due || a.when || '', link: a.link })); } catch (e) { /* seed */ }
+      if (!items.length) {
+        items = T.upcoming.map(u => ({ ...u, d: daysUntil(u.date) })).sort((a, b) => a.d - b.d).slice(0, 3)
+          .map(u => ({ t: `${u.title} — ${u.course} Sec ${u.section}`, d: u.d + 'd' }));
+        items.push({ t: 'Advising follow-up — Rakib Rahman (risk 93)', d: '2d' });
+      }
+      box.innerHTML = items.map(a => `<div style="display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-2)">
+        <span style="color:var(--warning)">${icon('bell', 'sm')}</span><span style="flex:1;font-size:13px">${esc(a.t)}</span><span class="chip amber">${esc(String(a.d))}</span></div>`).join('');
+    }
+    renderAlerts();
+    setInterval(renderAlerts, 8000);
+  }
+
   const strip = () => `
-    <div class="eon-strip" id="eonStrip">
+    <div class="eon-strip" id="eonStrip" style="top:auto;position:static">
       ${CS.map((cs, i) => `<button class="pill ${i === scope ? 'on' : ''}" data-i="${i}">${cs[0]} · Sec ${cs[1]}</button>`).join('')}
     </div>`;
 
   function layerCard(no, title, sub, body) {
-    return `<div class="card mb"><div class="card-head"><span class="layer-badge">LAYER ${no}</span><b>${title}</b><span class="spacer"></span><span class="hint">${sub}</span></div>${body}</div>`;
+    return `<div class="card mb" id="l${no}"><div class="card-head"><span class="layer-badge">LAYER ${no}</span><b>${title}</b><span class="spacer"></span><span class="hint">${sub}</span></div>${body}</div>`;
   }
 
   function draw() {
@@ -141,5 +227,6 @@ Please see me after class or book an office-hours slot this week.
         `<button class="btn" onclick="toast('Message queued ✓ (demo)');document.getElementById('tOverlay').remove()">Send</button>`);
     });
   }
+  renderTop();
   draw();
 };
