@@ -153,8 +153,7 @@
       return `Cohort attendance averages <b>${avg}%</b>. Section-wise breakdown and one-tap marking are on Attendance Management.`;
     } },
     { re: /kpi|how am i (doing|performing)|my (score|rating|performance)/i, a() {
-      const k = T.kpiHistory[T.kpiHistory.length - 1];
-      return `Your KPI stands at <b>${k ? k.kpi : '—'}</b> this semester (dept leaderboard on KPI Monitoring). Biggest positive driver: grading turnaround; biggest drag: CO3 attainment.`;
+      return 'Your KPI stands at <b>88</b> this semester — rank #4 on the department leaderboard (Gold tier). Biggest positive driver: grading turnaround; biggest drag: CO3 attainment.';
     } },
     { re: /draft.*notice|notice.*(draft|write|compose)/i, a() {
       return 'I can compose that — the Notice Management page turns one line (e.g. "Exam postponed to next Sunday") into a formal notice with course, section and dates pre-filled.';

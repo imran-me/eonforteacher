@@ -46,6 +46,23 @@ function lineChart(series, labels, { w = 520, h = 170, fmt = (v) => v } = {}) {
   const xl = labels.map((l, i) => `<text x="${X(i)}" y="${h - 6}" text-anchor="middle" font-size="9" fill="var(--text-faint)" font-family="Inter">${esc(String(l).slice(0, 12))}</text>`).join('');
   return `<svg viewBox="0 0 ${w} ${h}" width="100%">${grid}${lines}${xl}</svg>`;
 }
+function areaChart(series, labels, { w = 560, h = 260 } = {}) {
+  const all = series.flatMap(s => s.vals);
+  const min = Math.min(...all) * 0.92, max = Math.max(...all) * 1.04, span = (max - min) || 1;
+  const X = i => 40 + i / (labels.length - 1 || 1) * (w - 56);
+  const Y = v => 12 + (1 - (v - min) / span) * (h - 44);
+  const uid = 'ag' + Math.floor(Y(min));
+  const defs = series.map((s, si) => `<linearGradient id="${uid}${si}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${s.color}" stop-opacity=".5"/><stop offset="100%" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('');
+  const grid = [0, .5, 1].map(f => { const v = min + f * span; return `<line x1="40" x2="${w - 14}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="34" y="${Y(v) + 3}" text-anchor="end" font-size="10" fill="var(--text-faint)">${Math.round(v)}</text>`; }).join('');
+  const shapes = series.map((s, si) => {
+    const pts = s.vals.map((v, i) => `${X(i)},${Y(v)}`).join(' ');
+    return `<polygon points="${X(0)},${Y(min)} ${pts} ${X(s.vals.length - 1)},${Y(min)}" fill="url(#${uid}${si})"/>
+      <polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2"/>` +
+      s.vals.map((v, i) => `<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="${s.color}" opacity="0"><title>${s.name}: ${v}</title></circle>`).join('');
+  }).join('');
+  const xl = labels.map((l, i) => `<text x="${X(i)}" y="${h - 8}" text-anchor="middle" font-size="10" fill="var(--text-faint)">${esc(l)}</text>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%"><defs>${defs}</defs>${grid}${shapes}${xl}</svg>`;
+}
 function histogram(values, totalMarks, { w = 480, h = 150 } = {}) {
   const B = 10, buckets = new Array(B).fill(0);
   values.forEach(v => buckets[Math.min(B - 1, Math.floor(v / totalMarks * B))]++);
@@ -265,7 +282,7 @@ const NAV = [
   { page: 'voice', href: 'voice.html', ic: 'mic', label: 'Voice Assistant' },
 ];
 const TITLES = {
-  index: ['Dashboard', 'Your day across every section, batch and course'],
+  index: ['Command Center', 'Your day across every section, batch and course'],
   attendance: ['Attendance Management', 'Course-wise attendance · Semester · Summer 2026'],
   courses: ['Courses & Batches', 'Sections, outcomes and cohort comparisons'],
   students: ['Students', 'Rosters, profiles, risk flags and advising'],
@@ -285,7 +302,11 @@ const TITLES = {
   voice: ['Voice Assistant', 'Speak or trigger simulated voice queries across your data'],
 };
 function renderChrome(page) {
-  const [title, sub] = TITLES[page] || ['', ''];
+  let [title, sub] = TITLES[page] || ['', ''];
+  if (page === 'index') {
+    const first = (T.teacher.name.split(' ')[1] || T.teacher.name.split(' ')[0]);
+    sub = `Welcome back, ${first} · ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}`;
+  }
   $('#sidebar').innerHTML = `
     <div class="logo"><div class="mark">${icon('sparkles')}</div><div><b>DIU Smart <span class="gradient-text">Academic System</span></b><small>Teacher Portal</small></div></div>
     <nav class="nav">${NAV.map(n => n.grp ? `<div class="nav-label">${n.grp}</div>` :
@@ -363,37 +384,95 @@ function initIndex() {
   const todays = SCHEDULE.filter(s => s.day === today);
   const nextUp = T.upcoming.map(u => ({ ...u, d: daysUntil(u.date) })).sort((a, b) => a.d - b.d);
   const kNow = T.kpiHistory[T.kpiHistory.length - 1];
+  const avgAtt = Math.round(mean(T.students.map(s => s.attendanceRate)) * 100);
+  const weakCO = 'CO3';
+  const weekly = { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], score: [72, 78, 81, 76, 88, 84, 90], eng: [64, 70, 76, 72, 84, 79, 86] };
+  const trendP = [73, 77, 80, 81, 80, 78, 74, 70, 67, 65, 65, 67, 71, 75];
+  const trendA = [18, 17, 16, 14, 12, 10, 10, 10, 11, 13, 15, 16, 17, 17];
+  const trendL = trendP.map((_, i) => 'D' + (i + 1));
+  const schedule = todays.map(s => ({ time: s.time.split('–')[0].trim(), name: `${s.course} · ${T.course(s.course).title}`, room: s.room, status: 'Upcoming' }));
+  schedule.push({ time: '16:00', name: 'Faculty Council Meeting', room: 'Senate Hall', status: 'Meeting' });
+  if (schedule.length > 1) schedule[0].status = 'Now';
+  const insights = [
+    { tag: 'OBE', tone: 'var(--warning)', title: `${weakCO} attainment is low`, desc: `Practical lab activities suggested. 18 students below threshold.` },
+    { tag: 'Attendance', tone: 'var(--destructive)', title: 'Attendance dropped 12% in CSE311', desc: `Trigger early-warning emails to ${Math.min(9, flagged.length)} at-risk students.` },
+    { tag: 'Workflow', tone: 'var(--success)', title: 'Assignment grading 92% complete', desc: 'Auto-summary ready for the weekly KPI report.' },
+  ];
+  const notices = [
+    { tag: 'Exam', time: '2h ago', title: 'Mid-term exam schedule published' },
+    { tag: 'Event', time: 'Yesterday', title: 'AI workshop registration open' },
+    { tag: 'KPI', time: '2d ago', title: 'Reward cycle ends Friday' },
+  ];
+  const insightCard = (x) => `<div style="border:1px solid color-mix(in oklab,var(--border) 60%,transparent);background:color-mix(in oklab,var(--muted) 20%,transparent);border-radius:12px;padding:12px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip outline" style="font-size:10px">${x.tag}</span><span style="width:6px;height:6px;border-radius:99px;background:${x.tone}"></span></div>
+    <div style="font-size:14px;font-weight:500;margin-top:8px">${x.title}</div><div style="font-size:12px;color:var(--muted-foreground);margin-top:4px">${x.desc}</div></div>`;
 
   p.innerHTML = `
-  <div class="stats">
-    <div class="stat"><div class="ic t-primary">${icon('layers','lg')}</div><div class="v">${T.courses.length}</div><div class="l">Courses · ${T.courses.reduce((s, c) => s + c.sections.length, 0)} sections</div></div>
-    <div class="stat"><div class="ic t-blue">${icon('users','lg')}</div><div class="v">${totalStudents}</div><div class="l">Students across batches</div></div>
-    <div class="stat"><div class="ic t-amber">${icon('file-text','lg')}</div><div class="v">${gradingQueue.length}</div><div class="l">Recent scripts to review</div></div>
-    <div class="stat"><div class="ic t-violet">${icon('calendar','lg')}</div><div class="v">${nextUp.length}</div><div class="l">Upcoming exams</div></div>
-    <div class="stat"><div class="ic t-red">${icon('flag','lg')}</div><div class="v">${flagged.length}</div><div class="l">Students flagged</div></div>
-    <div class="stat"><div class="ic t-green">${icon('target','lg')}</div><div class="v">${kNow ? kNow.coAttain + '%' : '—'}</div><div class="l">Dept CO attainment</div></div>
+  <div class="gradient-border panel" style="border-radius:16px;padding:26px;position:relative;overflow:hidden;margin-bottom:18px">
+    <div style="position:absolute;inset:0;opacity:.4;pointer-events:none;background-image:linear-gradient(to right,oklch(0 0 0/3%) 1px,transparent 1px),linear-gradient(to bottom,oklch(0 0 0/3%) 1px,transparent 1px);background-size:32px 32px"></div>
+    <div style="position:relative;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+      <div style="min-width:260px;flex:1">
+        <span class="badge" style="background:oklch(0.78 0.17 210/12%);color:oklch(0.52 0.12 220);border-color:oklch(0.78 0.17 210/35%)">${icon('sparkles', 'sm')} AI insight of the day</span>
+        <h2 style="margin-top:12px;font-size:26px;font-weight:600;letter-spacing:-.025em"><span class="gradient-text">${weakCO} attainment</span> is trailing by 7% — recommend hands-on labs in CSE311.</h2>
+        <p style="margin:4px 0 0;font-size:14px;color:var(--muted-foreground)">Predicted KPI lift: <span style="color:var(--foreground);font-weight:500">+6.2 pts</span> this cycle.</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a class="btn ghost" href="reports.html">View report</a>
+        <a class="btn grad glow" href="obe.html">Apply suggestion ${icon('trending-up', 'sm')}</a>
+      </div>
+    </div>
   </div>
 
-  <div class="grid g2">
-    <div class="card"><div class="card-head"><span class="sec-title">Today's classes</span></div>
-      ${todays.length ? todays.map(s => { const c = T.course(s.course); return `<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2)">
-        <span class="num" style="font-family:var(--font-mono);font-weight:700;font-size:12px;min-width:88px">${s.time}</span>
-        <span style="flex:1"><b>${s.course} — ${esc(c.title)}</b><br><small class="hint">Section ${s.section} · ${s.room} · ${T.enrolled[s.course][s.section].length} students</small></span>
-        <span class="chip outline">${s.room}</span></div>`; }).join('') : '<p class="hint">No classes today — grading &amp; research day.</p>'}
-      <div class="card-head" style="margin:16px 0 8px"><span class="sec-title">Upcoming exams</span></div>
-      ${nextUp.map(u => `<div style="display:flex;align-items:center;gap:11px;padding:7px 0">
+  <div class="stats">
+    <div class="stat"><div class="ic t-primary">${icon('graduation-cap', 'lg')}</div><div class="v">142</div><div class="l">Classes Taken</div><div class="delta up">+8% this week</div></div>
+    <div class="stat"><div class="ic t-blue">${icon('users', 'lg')}</div><div class="v">${avgAtt}%</div><div class="l">Avg Attendance · ${totalStudents} students</div><div class="delta up">+3% this week</div></div>
+    <div class="stat"><div class="ic t-amber">${icon('alert-triangle', 'lg')}</div><div class="v">${flagged.length}</div><div class="l">Weak Students</div><div class="delta up">-2 this week</div></div>
+    <div class="stat"><div class="ic t-violet">${icon('sparkles', 'lg')}</div><div class="v">1280</div><div class="l">Reward Points</div><div class="delta up">+120 this week</div></div>
+    <div class="stat"><div class="ic t-red">${icon('calendar', 'lg')}</div><div class="v">${nextUp.length}</div><div class="l">Upcoming exams · next in ${nextUp[0] ? nextUp[0].d + 'd' : '—'}</div></div>
+    <div class="stat"><div class="ic t-green">${icon('target', 'lg')}</div><div class="v">${kNow ? kNow.coAttain + '%' : '—'}</div><div class="l">Dept CO attainment</div><div class="delta up">+2% this term</div></div>
+  </div>
+
+  <div class="grid g21">
+    <div class="card"><div class="card-head"><div><span class="sec-title">Weekly performance</span><div class="hint" style="margin-top:3px">KPI score vs student engagement</div></div><span class="spacer"></span><span class="chip outline">Last 7 days</span></div>
+      ${areaChart([{ name: 'KPI score', vals: weekly.score, color: 'oklch(0.68 0.21 295)' }, { name: 'Engagement', vals: weekly.eng, color: 'oklch(0.78 0.17 210)' }], weekly.labels, { h: 240 })}
+      <div class="hint" style="display:flex;gap:14px;margin-top:6px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:oklch(0.68 0.21 295)"></i> KPI score</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:oklch(0.78 0.17 210)"></i> Student engagement</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div><span class="sec-title">Today's schedule</span><div class="hint" style="margin-top:3px">${schedule.length} event${schedule.length === 1 ? '' : 's'}</div></div></div>
+      ${schedule.map(ev => `<div style="display:flex;align-items:center;gap:12px;border:1px solid color-mix(in oklab,var(--border) 60%,transparent);background:color-mix(in oklab,var(--muted) 20%,transparent);border-radius:12px;padding:11px 12px;margin-bottom:10px">
+        <div style="width:48px;height:48px;flex:0 0 auto;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,oklch(0.68 0.21 295/16%),oklch(0.78 0.17 210/16%));border:1px solid color-mix(in oklab,var(--border) 60%,transparent)">
+          <span style="color:var(--cyan-deep)">${icon('clock', 'sm')}</span><span style="font-size:10.5px;margin-top:2px;font-weight:600">${ev.time}</span></div>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ev.name)}</div><div style="font-size:12px;color:var(--muted-foreground)">${esc(ev.room)}</div></div>
+        <span class="chip outline" style="font-size:10px;${ev.status === 'Now' ? 'border-color:oklch(0.75 0.18 160/45%);color:#047857' : ''}">${ev.status}</span></div>`).join('')}
+      ${todays.length ? '' : '<p class="hint">No classes today — grading &amp; research day.</p>'}
+    </div>
+  </div>
+
+  <div class="grid g21" style="margin-top:16px">
+    <div class="card"><div class="card-head"><div><span class="sec-title">Attendance trend</span><div class="hint" style="margin-top:3px">Last 14 days · all courses</div></div><span class="spacer"></span><span class="chip outline">Live</span></div>
+      ${lineChart([{ name: 'Present', vals: trendP, color: 'oklch(0.75 0.18 160)' }, { name: 'Absent', vals: trendA, color: 'oklch(0.65 0.25 25)' }], trendL, { h: 200 })}
+    </div>
+    <div class="card"><div class="card-head"><span class="sec-title">AI insights</span><span class="ai-label">${icon('sparkles', 'sm')} EON</span></div>
+      ${insights.map(insightCard).join('')}
+    </div>
+  </div>
+
+  <div class="grid g21" style="margin-top:16px">
+    <div class="card"><div class="card-head"><span class="sec-title">At-risk students</span><span class="spacer"></span><a class="btn ghost sm" href="students.html">All students</a></div>
+      ${flagged.slice(0, 5).map(({ s, r }) => `<div style="display:grid;grid-template-columns:5fr 4fr 3fr;align-items:center;gap:12px;border:1px solid color-mix(in oklab,var(--border) 60%,transparent);background:color-mix(in oklab,var(--muted) 20%,transparent);border-radius:12px;padding:11px 12px;margin-bottom:10px">
+        <div><div style="font-size:14px;font-weight:500">${esc(s.name)}</div><div style="font-size:12px;color:var(--muted-foreground)">${s.id} · Sec ${s.section} · avg ${pct(r.avg)}% · trend ${r.trend >= 0 ? '+' : ''}${pct(r.trend)}%</div></div>
+        <div><div style="font-size:10px;color:var(--muted-foreground);margin-bottom:4px">Attendance ${pct(s.attendanceRate)}%</div><div class="bar"><i style="width:${pct(s.attendanceRate)}%;background:oklch(0.68 0.21 295)"></i></div></div>
+        <div style="text-align:right"><span class="badge badge-red">Risk ${r.score}</span></div></div>`).join('')}
+      <div class="card-head" style="margin:14px 0 8px"><span class="sec-title">Grading queue</span></div>
+      ${gradingQueue.map(a => `<div style="display:flex;gap:10px;align-items:center;padding:6px 0"><span class="chip slate">${a.type}</span><span style="flex:1">${esc(a.title)} <small class="hint">· Sec ${a.section}</small></span><a class="btn soft sm" href="results.html">Open</a></div>`).join('') || '<p class="hint">Queue clear.</p>'}
+    </div>
+    <div class="card"><div class="card-head"><span class="sec-title">Recent notices</span><span class="spacer"></span><a class="btn ghost sm" href="notices.html">Manage</a></div>
+      ${notices.map(n => `<div style="border:1px solid color-mix(in oklab,var(--border) 60%,transparent);background:color-mix(in oklab,var(--muted) 20%,transparent);border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip outline" style="font-size:10px">${n.tag}</span><span style="font-size:10px;color:var(--muted-foreground)">${n.time}</span></div>
+        <div style="font-size:14px;margin-top:8px">${n.title}</div></div>`).join('')}
+      <div class="card-head" style="margin:14px 0 8px"><span class="sec-title">Upcoming exams</span></div>
+      ${nextUp.map(u => `<div style="display:flex;align-items:center;gap:11px;padding:6px 0">
         <span class="chip ${u.d <= 5 ? 'red' : u.d <= 10 ? 'amber' : 'blue'}">${u.d}d</span>
         <span style="flex:1"><b>${esc(u.title)}</b> <small class="hint">· ${u.course} · Sec ${u.section} · ${u.weight}%</small></span></div>`).join('')}
-    </div>
-
-    <div class="card"><div class="card-head"><span class="sec-title">Students needing attention</span><span class="spacer"></span><a class="btn ghost sm" href="students.html">All students</a></div>
-      ${flagged.slice(0, 6).map(({ s, r }) => `<div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--line-2)">
-        <span class="risk-dot" style="background:var(--${r.tier})"></span>
-        <span style="flex:1"><b>${esc(s.name)}</b> <small class="hint">${s.id} · Sec ${s.section}</small><br>
-          <small class="hint">attendance ${pct(s.attendanceRate)}% · avg ${pct(r.avg)}% · trend ${r.trend >= 0 ? '+' : ''}${pct(r.trend)}%</small></span>
-        <span class="chip ${r.tier}">risk ${r.score}</span></div>`).join('')}
-      <div class="card-head" style="margin:16px 0 8px"><span class="sec-title">Grading queue</span></div>
-      ${gradingQueue.map(a => `<div style="display:flex;gap:10px;align-items:center;padding:6px 0"><span class="chip slate">${a.type}</span><span style="flex:1">${esc(a.title)} <small class="hint">· Sec ${a.section}</small></span><a class="btn soft sm" href="results.html">Open</a></div>`).join('') || '<p class="hint">Queue clear.</p>'}
     </div>
   </div>
 
@@ -633,6 +712,28 @@ function initKpi() {
       <div class="stat"><div class="ic t-violet">${icon('target','lg')}</div><div class="v">${cur.coAttain}%</div><div class="l">CO attainment</div></div>
       <div class="stat"><div class="ic t-blue">${icon('file-text','lg')}</div><div class="v">${cur.research}</div><div class="l">Research outputs</div></div>
       <div class="stat"><div class="ic t-amber">${icon('award','lg')}</div><div class="v">${cur.coCurricular}%</div><div class="l">Co-curricular engagement</div></div>
+    </div>
+    <div class="grid g21" style="margin-bottom:16px">
+      <div class="card"><div class="card-head"><span class="sec-title">Department leaderboard</span><span class="spacer"></span><span class="chip outline">Dept. of CSE · Summer 2026</span></div>
+        ${[
+          { n: 'Md. Sarwar Hossain Mollah', d: 'CIS', k: 96, t: 'Platinum' },
+          { n: 'Dr. Mohammad Azam Khan', d: 'CSE', k: 92, t: 'Gold' },
+          { n: 'Md. Nasimul Kader', d: 'CSE', k: 89, t: 'Gold' },
+          { n: T.teacher.name, d: 'CSE', k: 88, t: 'Gold', me: true },
+          { n: 'Mr. Israfil', d: 'CSE', k: 85, t: 'Silver' },
+        ].map((r, i) => `<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;margin-bottom:8px;border:1px solid ${r.me ? 'oklch(0.68 0.21 295/40%)' : 'color-mix(in oklab,var(--border) 60%,transparent)'};background:${r.me ? 'oklch(0.68 0.21 295/6%)' : 'color-mix(in oklab,var(--muted) 20%,transparent)'}">
+          <b class="num" style="width:22px;color:var(--muted-foreground)">${i + 1}</b>
+          <span style="flex:1"><b style="font-size:13.5px">${esc(r.n)}</b>${r.me ? ' <span class="ai-label">You</span>' : ''}<br><small class="hint">${r.d}</small></span>
+          <span class="badge ${r.t === 'Platinum' ? 'badge-violet' : r.t === 'Gold' ? 'badge-amber' : 'badge-slate'}">${r.t}</span>
+          <b class="num" style="font-size:16px;width:34px;text-align:right">${r.k}</b></div>`).join('')}
+      </div>
+      <div class="card"><div class="card-head"><span class="sec-title">Your KPI</span></div>
+        <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:44px;font-weight:600;letter-spacing:-.03em" class="gradient-text">88</span><span class="delta up" style="font-size:13px">+3 this cycle</span></div>
+        <div style="display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap"><span class="badge badge-violet">${icon('award', 'sm')} Mentor badge</span><span class="badge badge-green">${icon('activity', 'sm')} Consistency · 30d streak</span></div>
+        <div class="hint" style="margin-bottom:4px">Progress to Platinum (92)</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(88 / 92 * 100)}%"></div></div>
+        <div class="eonline" style="margin-top:12px">Grading turnaround and attendance compliance are lifting you; <b>CO3 attainment</b> is the one metric holding the tier.</div>
+      </div>
     </div>
     <div class="grid g2">
       <div class="card"><div class="card-head"><span class="sec-title">Batch GPA trend</span></div>${lineChart([{ name: 'Avg GPA', vals: H.map(x => x.gpaAvg), color: 'var(--primary)' }], labels)}</div>
