@@ -20,6 +20,7 @@
 (function () {
   if (window.__EON_TEACHER_ADAPTER) return;
   window.__EON_TEACHER_ADAPTER = true;
+  if (location.search.indexOf('noeon') !== -1) return;   // harness escape hatch
 
   /* ---------- 1. identity + formatters ---------- */
   const T = window.T;

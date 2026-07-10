@@ -66,7 +66,7 @@ window.initEonPage = function initEonPage() {
       ${flagged.length ? `<table class="dt">${flagged.map(({ s, r }) => `<tr>
         <td><span class="risk-dot" style="background:var(--${r.tier})"></span><b>${esc(s.name)}</b> <small class="hint">${s.id}</small></td>
         <td><small class="hint">att ${pct(s.attendanceRate)}% · late ${pct(s.lateSubRate)}% · trend ${r.trend >= 0 ? '+' : ''}${pct(r.trend)}%</small></td>
-        <td><span class="chip ${r.tier}">risk ${r.score}</span></td></tr>`).join('')}</table>` : '<p class="hint">No early-warning flags in this section. 🌿</p>'}`;
+        <td><span class="chip ${r.tier}">risk ${r.score}</span></td></tr>`).join('')}</table>` : '<p class="hint">No early-warning flags in this section.</p>'}`;
 
     /* ── Layer 3: forecast ── */
     const fc = A.forecast(course, section);
@@ -74,9 +74,9 @@ window.initEonPage = function initEonPage() {
     const prev = T.kpiHistory[2];
     const l3 = `
       <div class="stats" style="margin-bottom:10px">
-        <div class="stat"><div class="ic t-green">✅</div><div class="v">${fc.passRate}%</div><div class="l">Projected pass rate (Monte-Carlo, ${100 - fc.weightDone}% of grade left)</div></div>
+        <div class="stat"><div class="ic t-green">${icon('square-check','lg')}</div><div class="v">${fc.passRate}%</div><div class="l">Projected pass rate (Monte-Carlo, ${100 - fc.weightDone}% of grade left)</div></div>
         <div class="stat"><div class="ic t-primary">Σ</div><div class="v">${fc.avg}%</div><div class="l">Projected final average</div></div>
-        <div class="stat"><div class="ic t-red">📉</div><div class="v">${failing.length}</div><div class="l">Trending toward failure</div></div>
+        <div class="stat"><div class="ic t-red">${icon('trending-down','lg')}</div><div class="v">${failing.length}</div><div class="l">Trending toward failure</div></div>
       </div>
       ${failing.length ? `<div class="eonline">Ranked by urgency: ${failing.map(x => `<b>${esc(x.s.name)}</b> (${x.r.score})`).join(' · ')} — each needs an intervention BEFORE the final, while ${100 - fc.weightDone}% of the grade is still open.</div>` : ''}
       <div class="eonline">Department pace: this batch is tracking ${fc.avg >= Math.round(prev.gpaAvg / 4 * 100) ? '<b style="color:var(--green)">ahead of</b>' : '<b style="color:var(--red)">behind</b>'} the previous batch at the same point (prev GPA ${prev.gpaAvg} ≈ ${Math.round(prev.gpaAvg / 4 * 100)}%).</div>`;
@@ -93,7 +93,7 @@ window.initEonPage = function initEonPage() {
         return `<div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-2)">
           <span class="chip ${r.tier}">${r.score}</span>
           <span style="flex:1"><b>${esc(s.name)}</b> <small class="hint">— ${act}</small></span>
-          <button class="btn ghost sm" data-draft="${s.id}">✉️ Draft</button></div>`;
+          <button class="btn ghost sm" data-draft="${s.id}">${icon('mail')} Draft</button></div>`;
       }).join('') || '<p class="hint">No interventions needed.</p>'}`;
 
     /* ── Layer 5: did it work ── */

@@ -127,16 +127,16 @@ window.initIntegrityPage = function initIntegrityPage() {
 
   p.innerHTML = `
     <div class="card" style="border-left:4px solid var(--amber);background:var(--amber-soft)">
-      <b>⚖️ Flags, never verdicts.</b>
+      <b>${icon('shield')} Flags, never verdicts.</b>
       <div style="font-size:12.5px;margin-top:4px;color:#6b4d09">Everything below is <b>flagged for your review</b> — similarity has innocent explanations (shared lectures, textbook phrasing, group study). The tool assembles evidence and you decide: <b>Cleared</b>, <b>Needs discussion</b>, or <b>Confirmed</b>. No score on this page is an accusation.</div>
     </div>
 
     <div class="stats" style="margin-top:16px">
-      <div class="stat"><div class="ic t-primary">📄</div><div class="v">${N}</div><div class="l">Scripts analysed — ${esc(I.exam)}</div></div>
-      <div class="stat"><div class="ic t-amber">🔗</div><div class="v">${cases.length}</div><div class="l">Pairs above similarity threshold</div></div>
-      <div class="stat"><div class="ic t-red">🚩</div><div class="v">${cases.filter(c => c.tier === 'High').length}</div><div class="l">High-priority reviews</div></div>
-      <div class="stat"><div class="ic t-violet">🤖</div><div class="v">${aiFlagged.length}</div><div class="l">AI-likelihood flags</div></div>
-      <div class="stat"><div class="ic t-blue">✔</div><div class="v">${scripts.filter(s => s.finalAnswer === I.correctAnswer).length}/${N}</div><div class="l">Correct final answers (${I.correctAnswer})</div></div>
+      <div class="stat"><div class="ic t-primary">${icon('file-text','lg')}</div><div class="v">${N}</div><div class="l">Scripts analysed — ${esc(I.exam)}</div></div>
+      <div class="stat"><div class="ic t-amber">${icon('activity','lg')}</div><div class="v">${cases.length}</div><div class="l">Pairs above similarity threshold</div></div>
+      <div class="stat"><div class="ic t-red">${icon('flag','lg')}</div><div class="v">${cases.filter(c => c.tier === 'High').length}</div><div class="l">High-priority reviews</div></div>
+      <div class="stat"><div class="ic t-violet">${icon('cpu','lg')}</div><div class="v">${aiFlagged.length}</div><div class="l">AI-likelihood flags</div></div>
+      <div class="stat"><div class="ic t-blue">${icon('check','lg')}</div><div class="v">${scripts.filter(s => s.finalAnswer === I.correctAnswer).length}/${N}</div><div class="l">Correct final answers (${I.correctAnswer})</div></div>
     </div>
 
     <div class="grid g21">
@@ -211,7 +211,7 @@ window.initIntegrityPage = function initIntegrityPage() {
       <div class="hint" style="margin-top:10px">Highlighted passages are word-for-word 5-gram overlaps. ${c.bothCorrect ? 'Both being CORRECT with textbook phrasing is often innocent — weigh accordingly.' : c.sameWrong ? 'An identical WRONG final answer is the strongest signal here — correct answers can coincide; identical mistakes rarely do.' : ''}</div>
       <div class="card" style="background:var(--amber-soft);border-color:transparent;margin-top:12px;padding:10px 14px;font-size:12px;color:#6b4d09"><b>Your decision, not the tool's:</b> record the outcome after you've spoken with the students.</div>`,
       `<button class="btn ghost sm" data-rv="Cleared">✓ Cleared</button>
-       <button class="btn soft sm" data-rv="Needs discussion">💬 Needs discussion</button>
+       <button class="btn soft sm" data-rv="Needs discussion">${icon('message-square')} Needs discussion</button>
        <button class="btn danger sm" data-rv="Confirmed">Confirmed</button>`);
     document.querySelectorAll('[data-rv]').forEach(btn => btn.onclick = () => { setReview(rid, btn.dataset.rv); toast(`Marked “${btn.dataset.rv}” ✓`); document.getElementById('tOverlay').remove(); });
   }

@@ -366,12 +366,12 @@ function initIndex() {
 
   p.innerHTML = `
   <div class="stats">
-    <div class="stat"><div class="ic t-primary">📚</div><div class="v">${T.courses.length}</div><div class="l">Courses · ${T.courses.reduce((s, c) => s + c.sections.length, 0)} sections</div></div>
-    <div class="stat"><div class="ic t-blue">👥</div><div class="v">${totalStudents}</div><div class="l">Students across batches</div></div>
-    <div class="stat"><div class="ic t-amber">🗂️</div><div class="v">${gradingQueue.length}</div><div class="l">Recent scripts to review</div></div>
-    <div class="stat"><div class="ic t-violet">📅</div><div class="v">${nextUp.length}</div><div class="l">Upcoming exams</div></div>
-    <div class="stat"><div class="ic t-red">🚩</div><div class="v">${flagged.length}</div><div class="l">Students flagged</div></div>
-    <div class="stat"><div class="ic t-green">🎯</div><div class="v">${kNow ? kNow.coAttain + '%' : '—'}</div><div class="l">Dept CO attainment</div></div>
+    <div class="stat"><div class="ic t-primary">${icon('layers','lg')}</div><div class="v">${T.courses.length}</div><div class="l">Courses · ${T.courses.reduce((s, c) => s + c.sections.length, 0)} sections</div></div>
+    <div class="stat"><div class="ic t-blue">${icon('users','lg')}</div><div class="v">${totalStudents}</div><div class="l">Students across batches</div></div>
+    <div class="stat"><div class="ic t-amber">${icon('file-text','lg')}</div><div class="v">${gradingQueue.length}</div><div class="l">Recent scripts to review</div></div>
+    <div class="stat"><div class="ic t-violet">${icon('calendar','lg')}</div><div class="v">${nextUp.length}</div><div class="l">Upcoming exams</div></div>
+    <div class="stat"><div class="ic t-red">${icon('flag','lg')}</div><div class="v">${flagged.length}</div><div class="l">Students flagged</div></div>
+    <div class="stat"><div class="ic t-green">${icon('target','lg')}</div><div class="v">${kNow ? kNow.coAttain + '%' : '—'}</div><div class="l">Dept CO attainment</div></div>
   </div>
 
   <div class="grid g2">
@@ -379,7 +379,7 @@ function initIndex() {
       ${todays.length ? todays.map(s => { const c = T.course(s.course); return `<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2)">
         <span class="num" style="font-family:var(--font-mono);font-weight:700;font-size:12px;min-width:88px">${s.time}</span>
         <span style="flex:1"><b>${s.course} — ${esc(c.title)}</b><br><small class="hint">Section ${s.section} · ${s.room} · ${T.enrolled[s.course][s.section].length} students</small></span>
-        <span class="chip outline">${s.room}</span></div>`; }).join('') : '<p class="hint">No classes today — grading &amp; research day. 🌿</p>'}
+        <span class="chip outline">${s.room}</span></div>`; }).join('') : '<p class="hint">No classes today — grading &amp; research day.</p>'}
       <div class="card-head" style="margin:16px 0 8px"><span class="sec-title">Upcoming exams</span></div>
       ${nextUp.map(u => `<div style="display:flex;align-items:center;gap:11px;padding:7px 0">
         <span class="chip ${u.d <= 5 ? 'red' : u.d <= 10 ? 'amber' : 'blue'}">${u.d}d</span>
@@ -466,7 +466,7 @@ function initStudents() {
       <span class="sec-title">Roster</span>
       <div class="pills" id="grpPills">${groups.map((g, i) => `<button class="pill ${i === 0 ? 'on' : ''}" data-i="${i}">Batch ${g[0]} · Sec ${g[1]}</button>`).join('')}</div>
       <span class="spacer"></span>
-      <button class="btn soft sm" id="bulkAnnounce">📣 Announce to section</button>
+      <button class="btn soft sm" id="bulkAnnounce">${icon('message-square')} Announce to section</button>
       <button class="btn ghost sm" id="bulkRelease">Release grades</button>
     </div><div id="roster"></div></div>`;
   $$('#grpPills .pill').forEach(b => b.onclick = () => { cur = +b.dataset.i; $$('#grpPills .pill').forEach(x => x.classList.toggle('on', x === b)); draw(); });
@@ -502,12 +502,12 @@ function openStudent(sid) {
     <table class="dt">${h.map(x => `<tr><td>${esc(x.title)} <small class="hint">· ${x.course}</small></td><td class="num">${x.got}/${x.total}</td>
       <td style="width:100px"><div class="bar"><i style="width:${pct(x.p)}%;background:${x.p < 0.4 ? 'var(--red)' : 'var(--primary)'}"></i></div></td></tr>`).join('')}</table>
     ${st.clubs.length || st.awards.length ? `<div class="sec-title" style="margin:12px 0 6px">Co-curricular</div>
-      <div>${st.clubs.map(c => `<span class="chip violet">${esc(c)}</span> `).join('')}${st.awards.map(a => `<span class="chip green">🏆 ${esc(a)}</span> `).join('')}</div>` : ''}
+      <div>${st.clubs.map(c => `<span class="chip violet">${esc(c)}</span> `).join('')}${st.awards.map(a => `<span class="chip green">${icon('award','sm')} ${esc(a)}</span> `).join('')}</div>` : ''}
     <div class="sec-title" style="margin:14px 0 6px">Advising log</div>
     ${adv.length ? adv.map(a => `<div style="padding:7px 0;border-bottom:1px solid var(--line-2)"><b>${fmtD(a.date)}</b> — ${esc(a.topic)}<br><small class="hint">${esc(a.action)}${a.followUp ? ' · <b style="color:var(--amber)">follow-up needed</b>' : ''}</small></div>`).join('') : '<p class="hint">No advising sessions logged yet.</p>'}`,
-    `<button class="btn ghost sm" onclick="toast('Advising session scheduled ✓ (demo)')">📅 Schedule advising</button>
-     <button class="btn soft sm" onclick="toast('Flag saved ✓')">🚩 Flag</button>
-     <button class="btn sm" id="draftMsg">✉️ Draft message</button>`);
+    `<button class="btn ghost sm" onclick="toast('Advising session scheduled ✓ (demo)')">${icon('calendar')} Schedule advising</button>
+     <button class="btn soft sm" onclick="toast('Flag saved ✓')">${icon('flag')} Flag</button>
+     <button class="btn sm" id="draftMsg">${icon('mail')} Draft message</button>`);
   $('#draftMsg').onclick = () => {
     const draft = r.tier === 'red'
       ? `Dear ${st.name.split(' ')[0]},\n\nI've noticed your recent ${['CSE311', 'CSE220'].map(c => c).join('/')} results and attendance sliding, and I'd like to help before the finals. Please see me after Sunday's class, or book any slot in my office hours — we'll make a simple recovery plan together.\n\n— ${T.teacher.name}`
@@ -627,12 +627,12 @@ function initKpi() {
   const prevAtPoint = T.kpiHistory[2];
   p.innerHTML = `
     <div class="stats">
-      <div class="stat"><div class="ic t-primary">🎓</div><div class="v">${cur.gpaAvg}</div><div class="l">Batch avg GPA (live)</div></div>
-      <div class="stat"><div class="ic t-green">✅</div><div class="v">${cur.passRate}%</div><div class="l">Projected pass rate</div></div>
-      <div class="stat"><div class="ic t-red">🚩</div><div class="v">${cur.atRisk}</div><div class="l">At-risk students</div></div>
-      <div class="stat"><div class="ic t-violet">🎯</div><div class="v">${cur.coAttain}%</div><div class="l">CO attainment</div></div>
-      <div class="stat"><div class="ic t-blue">📄</div><div class="v">${cur.research}</div><div class="l">Research outputs</div></div>
-      <div class="stat"><div class="ic t-amber">🎭</div><div class="v">${cur.coCurricular}%</div><div class="l">Co-curricular engagement</div></div>
+      <div class="stat"><div class="ic t-primary">${icon('graduation-cap','lg')}</div><div class="v">${cur.gpaAvg}</div><div class="l">Batch avg GPA (live)</div></div>
+      <div class="stat"><div class="ic t-green">${icon('square-check','lg')}</div><div class="v">${cur.passRate}%</div><div class="l">Projected pass rate</div></div>
+      <div class="stat"><div class="ic t-red">${icon('flag','lg')}</div><div class="v">${cur.atRisk}</div><div class="l">At-risk students</div></div>
+      <div class="stat"><div class="ic t-violet">${icon('target','lg')}</div><div class="v">${cur.coAttain}%</div><div class="l">CO attainment</div></div>
+      <div class="stat"><div class="ic t-blue">${icon('file-text','lg')}</div><div class="v">${cur.research}</div><div class="l">Research outputs</div></div>
+      <div class="stat"><div class="ic t-amber">${icon('award','lg')}</div><div class="v">${cur.coCurricular}%</div><div class="l">Co-curricular engagement</div></div>
     </div>
     <div class="grid g2">
       <div class="card"><div class="card-head"><span class="sec-title">Batch GPA trend</span></div>${lineChart([{ name: 'Avg GPA', vals: H.map(x => x.gpaAvg), color: 'var(--primary)' }], labels)}</div>
@@ -669,7 +669,7 @@ function initOpportunities() {
         ${stale.length ? stale.map(a => { const st = T.student(a.sid); return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line-2)">
           <span class="chip amber">${Math.floor((Date.now() - Date.parse(a.date)) / 86400000)}d silent</span>
           <span style="flex:1"><b>${esc(st.name)}</b><br><small class="hint">${esc(a.topic)}</small></span>
-          <button class="btn ghost sm" onclick="toast('Check-in drafted ✓ (demo)')">✉️ Check in</button></div>`; }).join('') : '<p class="hint">No overdue follow-ups. 🌿</p>'}
+          <button class="btn ghost sm" onclick="toast('Check-in drafted ✓ (demo)')">${icon('mail')} Check in</button></div>`; }).join('') : '<p class="hint">No overdue follow-ups.</p>'}
       </div>
       <div class="card"><div class="card-head"><span class="sec-title">Co-curricular engagement</span></div>
         ${(() => { const withClub = T.students.filter(s => s.clubs.length); const byClub = {}; withClub.forEach(s => byClub[s.clubs[0]] = (byClub[s.clubs[0]] || 0) + 1);
