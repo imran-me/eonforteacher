@@ -180,47 +180,175 @@ const SCHEDULE = [
 ];
 
 /* ==========================================================
-   CHROME
+   ICONS — hand-drawn lucide-style strokes (24×24, sw2)
+   ========================================================== */
+const ICONS = {
+  'layout-dashboard': '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  'calendar-check': '<path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/>',
+  'layers': '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'clipboard-list': '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  'square-check': '<path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  'target': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  'trophy': '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  'heart-handshake': '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9"/>',
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  'briefcase': '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+  'sparkles': '<path d="M9.94 15.5a2 2 0 0 0-1.44-1.44l-6.13-1.58a.5.5 0 0 1 0-.96l6.13-1.58A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>',
+  'shield': '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  'brain': '<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v13"/>',
+  'file-chart': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/>',
+  'bell': '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  'list-checks': '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  'mic': '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  'settings': '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  'search': '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',
+  'panel-left': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>',
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'send': '<path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.64l-19 6.5a.5.5 0 0 0-.02.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
+  'trending-up': '<path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+  'trending-down': '<path d="M22 17l-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/>',
+  'alert-triangle': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  'activity': '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
+  'zap': '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+  'clock': '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  'mail': '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  'printer': '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
+  'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  'file-text': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  'message-square': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  'lightbulb': '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  'refresh-cw': '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
+  'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  'check': '<path d="M20 6 9 17l-5-5"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'eye': '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+  'flag': '<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.33 2q2 0 3.67-.8a1 1 0 0 1 1 .8v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-7.33-2q-2 0-3.67.8"/>',
+  'graduation-cap': '<path d="M21.42 10.92a1 1 0 0 0 0-1.84l-8.58-3.9a2 2 0 0 0-1.66 0l-8.58 3.9a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'award': '<circle cx="12" cy="8" r="6"/><path d="M15.48 12.83 17 22l-5-3-5 3 1.52-9.17"/>',
+  'database': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+  'cpu': '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/>',
+  'user': '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  'radar': '<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62a10 10 0 1 0 19.02-1.27"/><path d="M16.24 7.76a6 6 0 1 0-8.01 8.91"/><path d="M12 18h.01"/><path d="M17.99 11.66a6 6 0 0 1-2.22 4.58"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/>',
+  'scan-eye': '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.94 12.4c-1.44 2.34-3.94 4.1-6.94 4.1s-5.5-1.76-6.94-4.1a1 1 0 0 1 0-.8C6.5 9.26 9 7.5 12 7.5s5.5 1.76 6.94 4.1a1 1 0 0 1 0 .8"/>',
+  'book-marked': '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M10 2v8l3-3 3 3V2"/>',
+  'pen-line': '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+};
+function icon(name, cls) { return `<svg class="lucide${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS['sparkles']}</svg>`; }
+window.icon = icon; window.ICONS = ICONS;
+
+/* ==========================================================
+   CHROME — DIU Smart Academic System shell
    ========================================================== */
 const NAV = [
-  { grp: 'Teach' },
-  { page: 'index', href: 'index.html', ic: '▦', label: 'Dashboard' },
-  { page: 'courses', href: 'courses.html', ic: '📚', label: 'Courses & Batches' },
-  { page: 'students', href: 'students.html', ic: '👥', label: 'Students' },
-  { page: 'assessments', href: 'assessments.html', ic: '📝', label: 'Exams & Question Bank' },
-  { page: 'results', href: 'results.html', ic: '✅', label: 'Results & Grading' },
-  { grp: 'Grow' },
-  { page: 'kpi', href: 'kpi.html', ic: '📈', label: 'KPI & Growth' },
-  { page: 'opportunities', href: 'opportunities.html', ic: '🧭', label: 'My Opportunities' },
+  { grp: 'Workspace' },
+  { page: 'index', href: 'index.html', ic: 'layout-dashboard', label: 'Dashboard' },
+  { page: 'attendance', href: 'attendance.html', ic: 'calendar-check', label: 'Attendance Management' },
+  { page: 'courses', href: 'courses.html', ic: 'layers', label: 'Courses & Batches' },
+  { page: 'students', href: 'students.html', ic: 'users', label: 'Students' },
+  { page: 'assessments', href: 'assessments.html', ic: 'clipboard-list', label: 'Exams & Question Bank' },
+  { page: 'results', href: 'results.html', ic: 'square-check', label: 'Results & Grading' },
+  { page: 'obe', href: 'obe.html', ic: 'target', label: 'OBE Analytics' },
+  { page: 'kpi', href: 'kpi.html', ic: 'trophy', label: 'KPI Monitoring' },
+  { page: 'counseling', href: 'counseling.html', ic: 'heart-handshake', label: 'Counseling' },
+  { page: 'growth', href: 'growth.html', ic: 'book-open', label: 'Teacher Growth' },
+  { page: 'opportunities', href: 'opportunities.html', ic: 'briefcase', label: 'My Opportunities' },
   { grp: 'Intelligence' },
-  { page: 'eon', href: 'eon.html', ic: '🧠', label: 'EON Intelligence' },
-  { page: 'integrity', href: 'integrity.html', ic: '🛡️', label: 'Exam Integrity', hot: true },
+  { page: 'eon', href: 'eon.html', ic: 'sparkles', label: 'EON Intelligence' },
+  { page: 'integrity', href: 'integrity.html', ic: 'shield', label: 'Exam Integrity', hot: true },
+  { page: 'insights', href: 'insights.html', ic: 'brain', label: 'AI Insights' },
+  { page: 'reports', href: 'reports.html', ic: 'file-chart', label: 'AI Reports' },
+  { page: 'notices', href: 'notices.html', ic: 'bell', label: 'Notice Management' },
+  { page: 'quizzes', href: 'quizzes.html', ic: 'list-checks', label: 'AI Quiz Generator' },
+  { page: 'voice', href: 'voice.html', ic: 'mic', label: 'Voice Assistant' },
 ];
 const TITLES = {
   index: ['Dashboard', 'Your day across every section, batch and course'],
+  attendance: ['Attendance Management', 'Course-wise attendance · Semester · Summer 2026'],
   courses: ['Courses & Batches', 'Sections, outcomes and cohort comparisons'],
   students: ['Students', 'Rosters, profiles, risk flags and advising'],
   assessments: ['Exams & Question Bank', 'Build assessments from tagged questions; publish resources'],
   results: ['Results & Grading', 'Marks, distributions and CO/PO attainment'],
-  kpi: ['KPI & Growth', 'Batch and department trends across semesters'],
+  obe: ['OBE Analytics', 'University Teacher Portal • Summer 2026 · CO/PO attainment intelligence'],
+  kpi: ['KPI Monitoring', 'Your KPI, consistency and the department leaderboard'],
+  counseling: ['Counseling', 'Generate personalized improvement plans for at-risk students'],
+  growth: ['Teacher Growth', 'Research trajectory, publications and curated venues'],
   opportunities: ['My Opportunities', 'Grants, conferences, journals — your own pipeline'],
   eon: ['EON Intelligence', 'The cohort brain — diagnostic → predictive → prescriptive'],
   integrity: ['Exam Integrity', 'Similarity, stylometry & AI-likelihood — flagged for YOUR review'],
+  insights: ['AI Insights', 'Predicted at-risk students across every course you teach'],
+  reports: ['AI Reports', 'Describe what you need — data, charts and a summary are compiled'],
+  notices: ['Notice Management', 'Compose, refine and publish notices to your sections'],
+  quizzes: ['AI Quiz Generator', 'Quizzes generated by the EON agent, with student responses'],
+  voice: ['Voice Assistant', 'Speak or trigger simulated voice queries across your data'],
 };
 function renderChrome(page) {
   const [title, sub] = TITLES[page] || ['', ''];
   $('#sidebar').innerHTML = `
-    <div class="logo"><div class="mark">E</div><div><b>Eon for Teacher</b><small>DIU · faculty companion</small></div></div>
+    <div class="logo"><div class="mark">${icon('sparkles')}</div><div><b>DIU Smart <span class="gradient-text">Academic System</span></b><small>Teacher Portal</small></div></div>
     <nav class="nav">${NAV.map(n => n.grp ? `<div class="nav-label">${n.grp}</div>` :
-      `<a href="${n.href}" class="${n.page === page ? 'active' : ''}"><span class="ic">${n.ic}</span>${n.label}${n.hot ? '<span class="count">new</span>' : ''}</a>`).join('')}</nav>`;
+      `<a href="${n.href}" class="${n.page === page ? 'active' : ''}"><span class="ic">${icon(n.ic)}</span>${n.label}${n.hot ? '<span class="count">new</span>' : ''}</a>`).join('')}</nav>
+    <div class="side-foot nav"><a href="index.html"><span class="ic">${icon('settings')}</span>Settings</a></div>`;
   $('#topbar').innerHTML = `
     <div><h1>${title}</h1><div class="sub">${sub}</div></div>
-    <div class="right"><span class="chip outline">Summer 2026</span>
+    <div class="right">
+      <div class="tb-search">${icon('search')}<input id="tbSearch" type="text" placeholder="Search students, courses, COs…"></div>
+      <button class="tb-btn" id="tbAskAi">${icon('mic')}<span>Ask AI</span></button>
+      <button class="tb-bell" id="tbBell" aria-label="Notifications">${icon('bell')}<span class="dot"></span></button>
       <div class="teacher-chip"><span class="av">${initials(T.teacher.name)}</span><span><b>${esc(T.teacher.name)}</b><small>${esc(T.teacher.designation)} · ${esc(T.teacher.department)}</small></span></div>
     </div>`;
   const f = document.createElement('div'); f.className = 'footer';
-  f.innerHTML = `Eon for Teacher — synthetic demo data · designed & developed by <b>Md Imran Hossain</b> · same brain as the student system, different uniform`;
+  f.innerHTML = `DIU Smart Academic System · Teacher Portal — synthetic demo data · designed &amp; developed by <b>Md Imran Hossain</b>`;
   $('.page').appendChild(f);
+  mountAssistant();
+  $('#tbAskAi').onclick = () => { const p = $('#aiPanel'); if (p) { p.classList.add('show'); $('#aiFab').style.display = 'none'; $('#aiInput').focus(); } };
+  $('#tbBell').onclick = () => toast('3 notices · 2 flagged scripts await review');
+  $('#tbSearch').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const q = e.target.value.trim().toLowerCase(); if (!q) return;
+    const st = T.students.find(s => s.name.toLowerCase().includes(q) || s.id.includes(q));
+    if (st) { location.href = 'students.html#' + st.id; return; }
+    const c = T.courses.find(c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q));
+    if (c) { location.href = 'courses.html'; return; }
+    toast('No direct match — try a student name, ID or course code');
+  });
+}
+
+/* ---------- floating assistant (DIU Smart AI, answered by EON) ---------- */
+function mountAssistant() {
+  if ($('#aiFab')) return;
+  const fab = document.createElement('button');
+  fab.id = 'aiFab'; fab.className = 'fab'; fab.setAttribute('aria-label', 'Open AI Assistant');
+  fab.innerHTML = icon('sparkles', 'xl');
+  const panel = document.createElement('div');
+  panel.id = 'aiPanel'; panel.className = 'ai-panel';
+  const first = (T.teacher.name.split(' ')[1] || T.teacher.name.split(' ')[0]);
+  panel.innerHTML = `
+    <div class="head"><div style="display:flex;gap:10px;align-items:center"><span class="idm">${icon('sparkles', 'sm')}</span><span><b>DIU Smart AI</b><small>Always available · powered by EON</small></span></div>
+      <button class="xbtn" id="aiClose">${icon('x')}</button></div>
+    <div class="msgs" id="aiMsgs"><div class="msg"><span class="bub">Hi ${esc(first)} — your weekly KPI is up 8%. Want me to draft the OBE attainment report?</span></div></div>
+    <div class="inrow"><input id="aiInput" type="text" placeholder="Ask anything…"><button id="aiSend" aria-label="Send">${icon('send')}</button></div>`;
+  document.body.appendChild(fab); document.body.appendChild(panel);
+  fab.onclick = () => { panel.classList.add('show'); fab.style.display = 'none'; $('#aiInput').focus(); };
+  $('#aiClose').onclick = () => { panel.classList.remove('show'); fab.style.display = 'grid'; };
+  const send = () => {
+    const inp = $('#aiInput'); const q = inp.value.trim(); if (!q) return;
+    const box = $('#aiMsgs');
+    box.insertAdjacentHTML('beforeend', `<div class="msg me"><span class="bub">${esc(q)}</span></div>`);
+    inp.value = '';
+    let reply = null;
+    try { if (window.TeacherQA) reply = window.TeacherQA.answer(q); } catch (e) { /* fall through */ }
+    if (!reply) reply = 'On it — generating insight from latest CO/PO data…';
+    setTimeout(() => {
+      box.insertAdjacentHTML('beforeend', `<div class="msg"><span class="bub">${reply}</span></div>`);
+      box.scrollTop = box.scrollHeight;
+    }, 280);
+    box.scrollTop = box.scrollHeight;
+  };
+  $('#aiSend').onclick = send;
+  $('#aiInput').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 }
 
 /* ==========================================================
@@ -556,6 +684,7 @@ function initOpportunities() {
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.dataset.page;
   renderChrome(page);
-  const fn = { index: initIndex, courses: initCourses, students: initStudents, assessments: initAssessments, results: initResults, kpi: initKpi, opportunities: initOpportunities, eon: window.initEonPage, integrity: window.initIntegrityPage }[page];
+  const fn = { index: initIndex, courses: initCourses, students: initStudents, assessments: initAssessments, results: initResults, kpi: initKpi, opportunities: initOpportunities, eon: window.initEonPage, integrity: window.initIntegrityPage }[page]
+    || window['init' + page.charAt(0).toUpperCase() + page.slice(1) + 'Page'];
   if (typeof fn === 'function') { try { fn(); } catch (e) { console.error(e); $('#content').innerHTML = `<div class="card">Something went wrong rendering this page — check the console.</div>`; } }
 });
