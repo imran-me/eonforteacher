@@ -217,7 +217,7 @@
     /*5*/ 'Normalization reduce anomaly. insertion anomaly, deletion anomaly, update anomaly. because B→C is transitive through A→B, the table is not 3NF. splitting into (A,B), (B,C), (A,D) fixes it. as given, highest form = 1NF.',
     /*6*/ 'Normalization is organizing data to reduce redundancy and improve integrity. Given A→B and B→C we find a transitive dependency, so we must decompose. Taking R1(A,B), R2(B,C) and R3(A,D) preserves the dependencies. Since no partial dependency exists the relation is already in second normal form, therefore the highest normal form of R is 2NF.',
     /*7*/ 'Normalizing avoids storing same fact twice. Transitive: A→B→C. Decompose R into (A,B),(B,C),(A,D) which are each 3NF. But R itself as given: atomic values so 1NF, no partial dep so 2NF, transitive dep present so NOT 3NF → answer 2NF? no wait — with a single-attribute key there is no partial dependency question... I will say 1NF to be safe. Not sure.',
-    /*8*/ 'A relation is in 1NF if every attribute holds atomic values. 2NF removes partial dependencies and 3NF removes transitive dependencies. With FDs A→B and B→C the relation contains a transitive dependency, so as given it is only in 1NF. We decompose into R1(A,B), R2(B,C), R3(A,D). Final answer: 1NF.',
+    /*8*/ 'A relation is in 1NF when all attributes are atomic. It is in 2NF when there is no partial dependency on the key, and 3NF when no transitive dependency exists. With FDs A→B and B→C there is a transitive chain, so R as given is only in 1NF. We decompose: R1(A,B), R2(B,C), R3(A,D). Final answer: 1NF. This removes the update and deletion anomalies.',
     /*9*/ 'Redundancy makes anomalies. Here knowing A gives B, and B gives C, so C indirectly depends on A. That transitive dependency must be removed for 3NF. My decomposition: R1(A,B), R2(B,C), R3(A,D). The original relation only satisfies 1NF.',
     /*10*/ 'Normalization = breaking big table into smaller good tables. FD A→B and B→C, so transitive. If key is A then B and C both reachable. Decompose (A,B) (B,C) (A,D). Given relation: 1NF highest. Also BCNF for each decomposed one.',
     /*11*/ 'Normalization is organizing data to reduce redundancy and improve integrity. Given A→B and B→C we find a transitive dependency, so we must decompose. Taking R1(A,B), R2(B,C) and R3(A,D) preserves dependencies. Since no partial dependency exists the relation is already in second normal form, so the highest normal form of R is 2NF.',
@@ -255,7 +255,7 @@
   /* seat map for the exam room (5 columns × 5 rows, row-major).
      s07 (idx 6) and s12 (idx 11) are ADJACENT; s03 (idx 2) and s21 (idx 20) far apart. */
   const seatMap = {};
-  const order = [0, 1, 2, 3, 4, 5, 6, 11, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 20, 24, 21];
+  const order = [0, 1, 2, 3, 4, 5, 6, 11, 7, 19, 9, 10, 12, 13, 14, 15, 16, 17, 18, 8, 22, 23, 20, 24, 21];
   order.forEach((sIdx, seatNo) => { if (sA[sIdx]) seatMap[sA[sIdx].id] = { row: Math.floor(seatNo / 5) + 1, col: seatNo % 5 + 1 }; });
 
   const integrity = { exam: 'CSE311 Midterm — Section A · Question 3 (Normalization)', course: 'CSE311', section: 'A', correctAnswer: '1NF', scripts, baselines, seatMap };
